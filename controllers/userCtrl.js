@@ -29,6 +29,8 @@ const userCtrl = {
         user = await User.findById(req.user._id);
       }
       if (!user) throw { status: 404, message: "User not found" };
+      user = user.toObject();
+      delete user.password;
       res.status(200).json({
         data: user,
         message: "Get user successful",
