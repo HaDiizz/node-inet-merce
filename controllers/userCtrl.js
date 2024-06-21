@@ -6,7 +6,7 @@ const userCtrl = {
     try {
       if (req.user.role !== "admin")
         throw { status: 403, message: "Permission denied" };
-      const users = await User.find();
+      const users = await User.find().select("-password");
       res.status(200).json({
         data: users,
         message: "Get users successful",
