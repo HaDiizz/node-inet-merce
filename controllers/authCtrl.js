@@ -27,7 +27,9 @@ const authCtrl = {
         age,
         gender,
       });
-      const user = await newUser.save();
+      let user = await newUser.save();
+      user = user.toObject();
+      delete user.password;
       res.status(201).json({
         data: user,
         message: "Register successful",
