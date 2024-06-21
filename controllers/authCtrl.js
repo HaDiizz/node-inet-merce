@@ -91,9 +91,11 @@ const authCtrl = {
         async (err, result) => {
           if (err) throw { status: 401, message: "Please login" };
 
-          const user = await User.findById(result._id).select("-password");
+          let user = await User.findById(result._id).select("-password");
 
           if (!user) throw { status: 404, message: "User not found" };
+
+          user = user.toObject();
 
           const access_token = createAccessToken({ id: result.id });
 
