@@ -20,20 +20,31 @@ const userCtrl = {
   getUser: async (req, res) => {
     const { id } = req.params;
     try {
-      if (req.user.role === "user" && req.user._id.toString() !== id.toString())
-        throw { status: 403, message: "Permission denied" };
-      let user;
-      if (req.user.role === "admin") {
-        user = await User.findById(id);
-      } else {
-        user = await User.findById(req.user._id);
-      }
+      let user = await User.findById(id);
+
       if (!user) throw { status: 404, message: "User not found" };
       user = user.toObject();
       delete user.password;
       res.status(200).json({
         data: user,
         message: "Get user successful",
+      });
+    } catch (err) {
+      return res
+        .status(err.status || 500)
+        .json({ message: err.message, error: true });
+    }
+  },
+  getMe: async (req, res) => {
+    try {
+      if (!req?.user) throw { status: 401, message: "Unauthorized" };
+      let user = await User.findById(req.user._id);
+      if (!user) throw { status: 404, message: "User not found" };
+      user = user.toObject();
+      delete user.password;
+      res.status(200).json({
+        data: user,
+        message: "Get profile successful",
       });
     } catch (err) {
       return res
