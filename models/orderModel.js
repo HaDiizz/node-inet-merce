@@ -1,24 +1,29 @@
 const mongoose = require("mongoose");
 const Counter = require("./counterModel");
 
-const orderSchema = new mongoose.Schema({
-  order_id: {
-    type: Number,
-    unique: true,
-  },
-  customer_id: {
-    type: mongoose.Types.ObjectId,
-    ref: "users",
-  },
-  orderItems: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "orderItems",
-      required: true,
+const orderSchema = new mongoose.Schema(
+  {
+    order_id: {
+      type: Number,
+      unique: true,
     },
-  ],
-  totalPrice: Number,
-});
+    customer_id: {
+      type: mongoose.Types.ObjectId,
+      ref: "users",
+    },
+    orderItems: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "orderItems",
+        required: true,
+      },
+    ],
+    totalPrice: Number,
+  },
+  {
+    timestamps: true,
+  }
+);
 
 orderSchema.pre("save", async function (next) {
   const order = this;

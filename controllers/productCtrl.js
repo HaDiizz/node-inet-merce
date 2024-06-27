@@ -1,3 +1,5 @@
+const path = require("path");
+const fs = require("fs");
 const Product = require("../models/productModel");
 
 const productCtrl = {
@@ -36,22 +38,24 @@ const productCtrl = {
         throw { status: 400, message: "Product code is required" };
       if (!product_name)
         throw { status: 400, message: "Product name is required" };
-      if (!req.body.hasOwnProperty("price") || Number(price) < 0)
+      if (!price || Number(price) < 0)
         throw { status: 400, message: "Price is required" };
-      if (!req.body.hasOwnProperty("amount") || Number(amount) < 0)
+      if (!amount || Number(amount) < 0)
         throw { status: 400, message: "Amount is required" };
 
       const isDuplicateProductCode = await Product.findOne({ product_code });
 
       if (isDuplicateProductCode)
         throw { status: 400, message: "Product code has already used" };
-
       const newProduct = new Product({
         product_code,
         product_name,
         price: Number(price),
         amount: Number(amount),
-        detail,
+        product_image: req.file.filename,
+        detail: {
+          description: detail,
+        },
       });
       const product = await newProduct.save();
       res.status(201).json({
@@ -72,10 +76,36 @@ const productCtrl = {
       if (!product_id) throw { status: 400, message: "Product ID is required" };
       if (!product_name)
         throw { status: 400, message: "Product name is required" };
-      if (!req.body.hasOwnProperty("price") || Number(price) < 0)
+      if (!price || Number(price) < 0)
         throw { status: 400, message: "Price is required" };
-      if (!req.body.hasOwnProperty("amount") || Number(amount) < 0)
+      if (!amount || Number(amount) < 0)
         throw { status: 400, message: "Amount is required" };
+
+      const product = await Product.findById(product_id);
+      let updatedData = {
+        product_name: product_name || product.product_name,
+        price: price !== undefined ? price : product.price,
+        amount: amount !== undefined ? amount : product.amount,
+        description: detail || product.detail.description,
+        product_image: req?.file?.filename || product.product_image,
+      };
+      if (req.file) {
+        const oldImagePath = path.resolve(
+          __dirname,
+          "../public/images",
+          path.basename(product.product_image)
+        );
+        fs.unlink(oldImagePath, (err) => {
+          if (err) {
+            console.error("Failed to delete old image:", err);
+          } else {
+            console.log("Old image deleted:", oldImagePath);
+          }
+        });
+        updatedData.product_image = req.file.filename;
+      } else {
+        updatedData.product_image = product.product_image;
+      }
 
       await Product.updateOne(
         { _id: product_id },
@@ -84,12 +114,14 @@ const productCtrl = {
             product_name,
             price: Number(price),
             amount: Number(amount),
-            detail,
+            detail: {
+              description: detail,
+            },
+            product_image: req.file ? req.file.filename : product.product_image,
           },
         },
         { new: true }
       );
-      const product = await Product.findById(product_id);
       if (!product) throw { status: 404, message: "Product not found" };
       res.status(201).json({
         data: product,
@@ -111,8 +143,21 @@ const productCtrl = {
 
       if (!product) throw { status: 404, message: "Product not found" };
 
+      const imagePath = path.resolve(
+        __dirname,
+        "../public/images",
+        path.basename(product.product_image)
+      );
+
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send(err);
+        }
+      });
+
       res.status(200).json({
-        data: product,
+        // data: product,
         message: "Deleted successful",
         success: true,
       });

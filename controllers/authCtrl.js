@@ -4,10 +4,22 @@ const jwt = require("jsonwebtoken");
 
 const authCtrl = {
   register: async (req, res) => {
-    const { username, password, first_name, last_name, age, gender } = req.body;
+    const {
+      username,
+      password,
+      cf_password,
+      first_name,
+      last_name,
+      age,
+      gender,
+    } = req.body;
     try {
       if (!username) throw { status: 400, message: "Username is required" };
       if (!password) throw { status: 400, message: "Password is required" };
+      if (!cf_password)
+        throw { status: 400, message: "Confirm Password is required" };
+      if (password !== cf_password)
+        throw { status: 400, message: "Password does not match" };
       if (!first_name) throw { status: 400, message: "First Name is required" };
       if (!last_name) throw { status: 400, message: "Last Name is required" };
       if (!gender) throw { status: 400, message: "Gender is required" };
@@ -56,7 +68,7 @@ const authCtrl = {
       if (!isMatch)
         throw { status: 400, message: "Username or Password is incorrect" };
       const payload = {
-        _id: validUser._id,
+        _id: validUser._id.toString(),
         username: validUser.username,
       };
       const access_token = createAccessToken(payload);
@@ -97,7 +109,7 @@ const authCtrl = {
 
           user = user.toObject();
 
-          const access_token = createAccessToken({ id: result.id });
+          const access_token = createAccessToken({ _id: result._id });
 
           return res.status(201).json({
             data: [{ ...user, access_token }],
@@ -110,6 +122,14 @@ const authCtrl = {
       return res
         .status(err.status || 500)
         .json({ message: err.message, error: true });
+    }
+  },
+  logout: async (req, res) => {
+    try {
+      res.clearCookie("refreshToken", { path: "/" });
+      return res.json({ msg: "Logged out" });
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
     }
   },
 };

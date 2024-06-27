@@ -12,7 +12,7 @@ const orderCtrl = {
           .populate({
             path: "customer_id",
             model: User,
-            select: "username full_name last_name age gender user_id",
+            select: "username first_name last_name age gender user_id",
           })
           .populate({
             path: "orderItems",
@@ -29,7 +29,7 @@ const orderCtrl = {
           .populate({
             path: "customer_id",
             model: User,
-            select: "username full_name last_name age gender user_id",
+            select: "username first_name last_name age gender user_id",
           })
           .populate({
             path: "orderItems",
@@ -61,7 +61,7 @@ const orderCtrl = {
           .populate({
             path: "customer_id",
             model: User,
-            select: "username full_name last_name age gender user_id",
+            select: "username first_name last_name age gender user_id",
           })
           .populate({
             path: "orderItems",
@@ -75,13 +75,13 @@ const orderCtrl = {
           });
       } else {
         order = await Order.findOne({
-          order_id,
-          customer_id: req.user._id,
+          _id: order_id,
+          customer_id: req.user._id.toString(),
         })
           .populate({
             path: "customer_id",
             model: User,
-            select: "username full_name last_name age gender user_id",
+            select: "username first_name last_name age gender user_id",
           })
           .populate({
             path: "orderItems",
